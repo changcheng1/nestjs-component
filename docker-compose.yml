@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - database
+    networks:
+      - nestjs-network # 使用自定义网络连接服务
+
+  database:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "000000"
+      MYSQL_DATABASE: "nestjsdb"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "000000"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - nestjs-network # 使用自定义网络连接服务
+
+volumes:
+  mysql-data:
+    driver: local
+
+networks:
+  nestjs-network:
+    # 定义自定义网络，以便服务间通信
+    driver: bridge
