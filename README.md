@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 18:06:54
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-07 16:48:21
+ * @LastEditTime: 2025-05-08 09:06:49
  * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/README.md
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -31,7 +31,7 @@ nest g resource [name]
 
  In this command:
 
- 1. -t my-nestjs-app: Tags the image with the name my-nestjs-app.
+ 1. my-nestjs-app: Tags the image with the name my-nestjs-app.
 
  2. Indicates the current directory as the build context.
 
