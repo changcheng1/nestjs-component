@@ -2,21 +2,20 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 17:11:55
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-07 17:32:33
+ * @LastEditTime: 2025-05-10 11:31:27
  * @FilePath: /mvw_project/Users/changcheng/Desktop/back/src/common/dynamic/app.module.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE∏
  */
 import { Module, Logger, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entites/user.entity';
+import { User } from './user/entites/user.entity';
 import { UsersModule } from './user/user.module';
-import { APP_FILTER } from '@nestjs/core';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { InstutionModule } from './instution/instution.module';
 import { db } from './config/database.config';
 import { Logs } from './entites/logs.entity';
 import { Profile } from './entites/profile.entity';
 import { Roles } from './entites/roles.entity';
+import { LogsModule } from './logs/logs.module';
 // 全局模块，exports logger，其他模块中可以注入，不用重复创建
 @Global()
 @Module({
@@ -34,17 +33,13 @@ import { Roles } from './entites/roles.entity';
       // logging: true, // 打印日志
     }),
     UsersModule,
-    InstutionModule, // 注册用户模块
+    InstutionModule,
+    LogsModule, // 注册用户模块
   ],
-  // 注册全局过滤器
-  providers: [
-    {
-      provide: APP_FILTER,
-      // 使用HttpExceptionFilter
-      useClass: HttpExceptionFilter,
-    },
-    Logger,
-  ],
+  // providers 用于声明模块的提供者，这些提供者可以被注入到其他组件中
+  // 这里提供 Logger 服务，使其可以在整个应用中通过依赖注入使用
+  providers: [Logger],
+  // exports 用于声明模块的导出，这些导出可以被其他模块导入
   exports: [Logger],
 })
 // 使用中间件

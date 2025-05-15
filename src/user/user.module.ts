@@ -2,15 +2,15 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-21 10:28:43
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-07 17:30:16
- * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/user/user.module.ts
+ * @LastEditTime: 2025-05-13 19:01:15
+ * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/src/user/user.module.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './user.service';
 import { UserController } from './user.controller';
-import { User } from '../entites/user.entity';
+import { User } from './entites/user.entity';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModuleClass } from '../dynamic/dynamic.module';
@@ -19,10 +19,12 @@ import { ConfigService } from '@nestjs/config';
 import { InstutionModule } from '../instution/instution.module';
 import { DiscoveryModule } from '@nestjs/core';
 import { Logs } from '../entites/logs.entity';
+import { Profile } from '../entites/profile.entity';
+import { Roles } from '../entites/roles.entity';
 @Module({
   imports: [
     // 注册User实体，Logs实体
-    TypeOrmModule.forFeature([User, Logs]),
+    TypeOrmModule.forFeature([User, Logs, Profile, Roles]),
     // 动态模块
     ConfigModuleClass.register({ foler: 'development' }),
     // 循环依赖

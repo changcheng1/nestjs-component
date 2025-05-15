@@ -2,21 +2,19 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-12 19:39:53
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-07 17:04:04
+ * @LastEditTime: 2025-05-09 21:32:51
  * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/main.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AuthGuard } from './common/guards/auth.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptors';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { http } from './config/database.config';
-import { createLogger } from 'winston';
-import { WinstonModule } from 'nest-winston';
-import * as winston from 'winston';
-import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { Logger } from '@nestjs/common';
 interface Module {
   hot: {
     accept: () => void;
@@ -25,41 +23,15 @@ interface Module {
 }
 declare const module: Module;
 async function bootstrap() {
-  // 创建winston实例
-  const instance = createLogger({
-    // options of Winston
-    transports: [
-      new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.ms(),
-          nestWinstonModuleUtilities.format.nestLike('NestApplication', {
-            // 是否使用颜色
-            colors: true,
-            // 是否使用prettyPrint
-            prettyPrint: true,
-            // 是否使用processId
-            processId: true,
-            // 是否使用appName
-            appName: true,
-          }),
-        ),
-      }),
-    ],
-  });
-  const app = await NestFactory.create(AppModule, {
-    logger: WinstonModule.createLogger({
-      instance,
-    }),
-  });
+  const app = await NestFactory.create(AppModule);
   // 使用全局守卫
   app.useGlobalGuards(new AuthGuard());
-  // 使用中间件
-  // app.use(logger);
   // 使用全局过滤器
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(Logger));
   // 使用全局拦截器
   app.useGlobalInterceptors(new LoggingInterceptor());
+  // 使用Winston日志
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
   // set global proxy
   app.setGlobalPrefix('api/v1');
   // 设置应用关闭钩子
