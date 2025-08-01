@@ -2,19 +2,23 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-12 19:39:53
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-09 21:32:51
+ * @LastEditTime: 2025-08-01 10:30:16
  * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/main.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AuthGuard } from './common/guards/auth.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptors';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { http } from './config/database.config';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { Logger } from '@nestjs/common';
+import {
+  Logger,
+  ValidationPipe,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 interface Module {
   hot: {
     accept: () => void;
@@ -24,15 +28,22 @@ interface Module {
 declare const module: Module;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // 使用全局守卫
-  app.useGlobalGuards(new AuthGuard());
   // 使用全局过滤器
   app.useGlobalFilters(new HttpExceptionFilter(Logger));
   // 使用全局拦截器
   app.useGlobalInterceptors(new LoggingInterceptor());
-  // 使用Winston日志
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
-  // set global proxy
+  // 添加响应拦截器，统一处理API响应格式
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  // 添加 ClassSerializerInterceptor 以支持 @Exclude() 装饰器
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(new Reflector()));
+  // 使用默认日志
+  app.useLogger(new Logger());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      // 去除请求体中没有的属性,用户传不存在字段不会报错，也不会保存到数据库
+      whitelist: true,
+    }),
+  );
   app.setGlobalPrefix('api/v1');
   // 设置应用关闭钩子
   app.enableShutdownHooks();
@@ -41,6 +52,8 @@ async function bootstrap() {
     .setTitle('nestjs Demo')
     .setDescription('nestjs 项目')
     .setVersion('1.0')
+    .addServer(`http://127.0.0.1:${http.port}`, '开发环境')
+    .addServer(`http://127.0.0.1:${http.port}/api/v1`, 'API v1 版本')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

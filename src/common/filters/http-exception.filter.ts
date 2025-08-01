@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-21 15:45:42
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-13 13:47:48
+ * @LastEditTime: 2025-07-13 13:48:48
  * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/common/filters/http-exception.filter.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -58,7 +58,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ip: request.ip,
       userAgent: request.get('user-agent'),
     });
-
+    console.log('http异常过滤器信息', errorResponse);
     // 返回错误响应
     response.status(status).json({
       statusCode: status,

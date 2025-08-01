@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-13 13:57:50
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-13 19:50:27
+ * @LastEditTime: 2025-07-13 13:45:23
  * @FilePath: /myself-space/nestjs/src/common/filters/typeOrm.filter.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -51,7 +51,7 @@ export class TypeOrmExceptionFilter implements ExceptionFilter {
           errorMessage = exception.message;
       }
     }
-    console.log('exception', exception);
+    console.log('异常过滤器信息', exception);
     // Send response
     response.status(status).json({
       statusCode: status,
