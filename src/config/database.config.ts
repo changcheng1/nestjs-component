@@ -29,7 +29,7 @@ export interface YamlConfig {
 }
 // 根据环境变量获取配置文件
 const yamlConfig = yaml.load(
-  readFileSync(join(__dirname, `../env.${env}.yml`), 'utf8'),
+  readFileSync(join(process.cwd(), `env.${env}.yml`), 'utf8'),
 ) as YamlConfig;
 const { db, http } = yamlConfig;
 export { db, http };

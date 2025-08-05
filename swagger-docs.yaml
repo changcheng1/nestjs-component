@@ -457,9 +457,9 @@ info:
   contact: {}
 tags: []
 servers:
-  - url: http://127.0.0.1:3001
+  - url: http://127.0.0.1:3000
     description: 开发环境
-  - url: http://127.0.0.1:3001/api/v1
+  - url: http://127.0.0.1:3000/api/v1
     description: API v1 版本
 components:
   schemas:

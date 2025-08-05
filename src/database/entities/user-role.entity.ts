@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-07-06 11:45:00
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 11:40:40
+ * @LastEditTime: 2025-08-01 19:14:57
  * @FilePath: /myself-space/nestjs/src/entities/user-role.entity.ts
  * @Description: 用户角色关联表
  */
@@ -12,8 +12,6 @@ import {
   Column,
   CreateDateColumn,
 } from 'typeorm';
-
-import { Role } from '../../enum/role.enum';
 
 export interface RoleType {
   id: number;

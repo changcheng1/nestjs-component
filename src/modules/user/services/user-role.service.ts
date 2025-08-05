@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-07-06 11:55:00
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 11:49:26
+ * @LastEditTime: 2025-08-01 16:31:18
  * @FilePath: /myself-space/nestjs/src/user/services/user-role.service.ts
  * @Description: 用户角色服务
  */
@@ -22,21 +22,19 @@ export class UserRoleService {
   ) {}
 
   /**
-   * 根据用户ID查找角色
+   * 根据用户ID查找角色 - 优化版本
    * @param userId 用户ID
    * @returns 角色列表
    */
   async findRoleByUserId(userId: number): Promise<Role[]> {
-    const userRole = await this.userRoleRepository.find({
-      where: { userId },
-    });
+    // 使用原生 SQL 查询优化性能
+    const roles = await this.rolesRepository
+      .createQueryBuilder('role') // 1. 从 roles 表开始
+      .innerJoin('user_roles', 'ur', 'ur.role_id = role.id') // 2. 连接 user_roles 表
+      .where('ur.user_id = :userId', { userId }) // 3. 过滤用户ID
+      .getMany(); // 4. 获取结果
 
-    if (userRole.length === 0) {
-      return [];
-    }
-
-    const roleIds = userRole.map((ur) => ur.roleId);
-    return this.rolesRepository.findByIds(roleIds);
+    return roles;
   }
 
   /**
@@ -58,25 +56,20 @@ export class UserRoleService {
   }
 
   /**
-   * 检查用户是否有指定角色
+   * 检查用户是否有指定角色 - 优化版本
    * @param userId 用户ID
    * @param roleName 角色名称
    * @returns 是否有该角色
    */
   async hasRole(userId: number, roleName: string): Promise<boolean> {
-    // 先查询用户的角色ID
-    const userRoles = await this.userRoleRepository.find({
-      where: { userId },
-    });
+    // 使用原生 SQL 查询优化性能
+    const count = await this.rolesRepository
+      .createQueryBuilder('role')
+      .innerJoin('user_roles', 'ur', 'ur.role_id = role.id')
+      .where('ur.user_id = :userId', { userId })
+      .andWhere('role.name = :roleName', { roleName })
+      .getCount();
 
-    if (userRoles.length === 0) {
-      return false;
-    }
-
-    const roleIds = userRoles.map((ur) => ur.roleId);
-    // 查询所有角色
-    const roles = await this.rolesRepository.findByIds(roleIds);
-    // 判断是否有目标角色名
-    return roles.some((role) => role.name === roleName);
+    return count > 0;
   }
 }

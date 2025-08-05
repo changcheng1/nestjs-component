@@ -9,14 +9,13 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { PasswordService } from '../../common/services/password.service';
+import { AuthService } from '../auth.service';
+import { PasswordService } from '../../../common/services/password.service';
 
 // 定义用户类型
 interface User {
   id: number;
   username: string;
-  roles?: unknown[];
 }
 
 @Injectable()
@@ -28,6 +27,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     super();
   }
   async validate(username: string, password: string): Promise<User> {
+    // 调用 AuthService 验证用户名密码
     const user = (await this.authService.validateUser(
       username,
       password,
@@ -35,6 +35,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     if (!user) {
       throw new UnauthorizedException('用户名或密码错误');
     }
+    //  返回用户信息（不包含密码）
     return user;
   }
 }

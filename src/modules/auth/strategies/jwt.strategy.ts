@@ -9,19 +9,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserService } from '../user/user.service';
-import { ConfigService } from '@nestjs/config';
+import { UserService } from '../../user/user.service';
 import * as yaml from 'js-yaml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { YamlConfig } from '../../config/database.config';
+import { YamlConfig } from '../../../config/database.config';
 
 // 获取环境变量
 const env = process.env.NODE_ENV || 'production';
 const {
   jwt: { secret },
 } = yaml.load(
-  readFileSync(join(__dirname, `../env.${env}.yml`), 'utf8'),
+  readFileSync(join(process.cwd(), `env.${env}.yml`), 'utf8'),
 ) as YamlConfig;
 // JWT payload 类型
 interface JwtPayload {
@@ -40,12 +39,13 @@ interface UserInfo {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private usersService: UserService) {
+    // JwtStrategy 配置
     super({
       // 从 Authorization 头提取 token
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // 不忽略过期时间
+      // 不忽略过期时间，过期token会被拒绝
       ignoreExpiration: false,
-      // JWT 密钥
+      // 使用配置文件中的密钥验证签名
       secretOrKey: secret,
     });
   }

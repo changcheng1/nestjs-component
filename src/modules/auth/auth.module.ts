@@ -12,8 +12,8 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtStrategy } from './jwt.strategy';
-import { LocalStrategy } from './local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -26,7 +26,7 @@ const env = process.env.NODE_ENV || 'production';
 const {
   jwt: { secret },
 } = yaml.load(
-  readFileSync(join(__dirname, `../env.${env}.yml`), 'utf8'),
+  readFileSync(join(process.cwd(), `env.${env}.yml`), 'utf8'),
 ) as YamlConfig;
 // 获取环境变量
 

@@ -13,7 +13,7 @@ const path = require('path');
 // 从 Swagger UI 获取 OpenAPI 规范
 async function exportSwagger() {
   try {
-    const baseUrl = 'http://127.0.0.1:3001'; // 你的应用端口
+    const baseUrl = 'http://127.0.0.1:3000'; // 你的应用端口
     const swaggerUrl = `${baseUrl}/api-json`; // Swagger JSON 端点
 
     console.log('正在获取 Swagger 文档...');
@@ -38,7 +38,7 @@ async function exportSwagger() {
     console.error('❌ 导出失败:', error.message);
     console.log('\n💡 请确保:');
     console.log('1. 应用正在运行 (npm run start:dev)');
-    console.log('2. 端口配置正确 (默认 3001)');
+    console.log('2. 端口配置正确 (默认 3000)');
     console.log('3. Swagger 已正确配置');
   }
 }

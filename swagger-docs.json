@@ -22,6 +22,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "添加用户",
         "tags": [
           "用户管理"
@@ -49,6 +54,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "删除用户",
         "tags": [
           "用户管理"
@@ -87,6 +97,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "更新用户",
         "tags": [
           "用户管理"
@@ -114,6 +129,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "用户登录",
         "tags": [
           "用户管理"
@@ -141,6 +161,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "查找用户",
         "tags": [
           "用户管理"
@@ -168,6 +193,11 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "获取角色权限",
         "tags": [
           "用户管理"
@@ -320,7 +350,7 @@
         ]
       }
     },
-    "/api/v1/logs": {
+    "/api/v1/logs/create": {
       "post": {
         "description": "创建新的日志",
         "operationId": "LogsController_create",
@@ -349,7 +379,9 @@
         "tags": [
           "日志管理"
         ]
-      },
+      }
+    },
+    "/api/v1/logs/findAll": {
       "get": {
         "description": "获取所有日志",
         "operationId": "LogsController_findAll",
@@ -370,7 +402,7 @@
         ]
       }
     },
-    "/api/v1/logs/{id}": {
+    "/api/v1/logs/findOne/{id}": {
       "get": {
         "description": "获取指定日志",
         "operationId": "LogsController_findOne",
@@ -785,6 +817,9 @@
           },
           "400": {
             "description": "请求参数错误"
+          },
+          "403": {
+            "description": "无权限"
           }
         },
         "security": [
@@ -917,11 +952,11 @@
   "tags": [],
   "servers": [
     {
-      "url": "http://127.0.0.1:3001",
+      "url": "http://127.0.0.1:3000",
       "description": "开发环境"
     },
     {
-      "url": "http://127.0.0.1:3001/api/v1",
+      "url": "http://127.0.0.1:3000/api/v1",
       "description": "API v1 版本"
     }
   ],
@@ -1014,7 +1049,40 @@
       },
       "CreateLogDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "请求路径",
+            "example": "/api/v1/logs/create"
+          },
+          "method": {
+            "type": "string",
+            "description": "请求方法",
+            "example": "POST"
+          },
+          "data": {
+            "type": "string",
+            "description": "请求数据",
+            "example": "{\"key\": \"value\"}"
+          },
+          "result": {
+            "type": "string",
+            "description": "响应结果",
+            "example": "{\"status\": \"success\"}"
+          },
+          "userId": {
+            "type": "number",
+            "description": "用户ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "path",
+          "method",
+          "data",
+          "result",
+          "userId"
+        ]
       },
       "SignUpDto": {
         "type": "object",
