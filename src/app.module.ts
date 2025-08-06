@@ -1,27 +1,3 @@
-/*
- * @Author: changcheng 364000100@#qq.com
- * @Date: 2025-07-12 13:41:41
- * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-07-31 20:09:48
- * @FilePath: /myself-space/nestjs/src/app.module.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-/*
- * @Author: changcheng 364000100@#qq.com
- * @Date: 2025-04-23 17:11:55
- * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-07-13 13:28:44
- * @FilePath: /myself-space/nestjs/src/app.module.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-/*
- * @Author: changcheng 364000100@#qq.com
- * @Date: 2025-04-23 17:11:55
- * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-07-11 17:49:33
- * @FilePath: /mvw_project/Users/changcheng/Desktop/back/src/common/dynamic/app.module.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE∏
- */
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { db } from './config/database.config';
@@ -47,6 +23,7 @@ import {
 import { LoggerMiddleware } from './common/middleware/loggerClass.middleware';
 import { UserController } from './modules/user/user.controller';
 import { NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { AppController } from './app.controller';
 
 @Global()
 @Module({
@@ -80,6 +57,7 @@ import { NestModule, MiddlewareConsumer } from '@nestjs/common';
     RoleModule,
     MenusModule,
   ],
+  controllers: [AppController],
 })
 // 使用函数中间件
 export class AppModule implements NestModule {
