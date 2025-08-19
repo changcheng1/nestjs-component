@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-15 19:12:09
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 15:28:43
+ * @LastEditTime: 2025-08-19 15:27:38
  * @FilePath: /myself-space/nestjs/src/auth/jwt.strategy.ts
  * @Description: JWT策略
  */
@@ -13,7 +13,7 @@ import { UserService } from '../../user/user.service';
 import * as yaml from 'js-yaml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { YamlConfig } from '../../../config/database.config';
+import { YamlConfig } from '../../../database/typeorm/database.config';
 
 // 获取环境变量
 const env = process.env.NODE_ENV || 'production';

@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-08-01 19:20:00
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 19:18:04
+ * @LastEditTime: 2025-08-19 19:33:55
  * @FilePath: /myself-space/nestjs/src/modules/auth/casl/casl.guard.ts
  * @Description: CASL 权限守卫
  */
@@ -59,6 +59,7 @@ export class CaslGuard implements CanActivate {
     // 检查所有策略
     for (const handler of policyHandlers) {
       try {
+        // 执行策略处理器
         const result = await handler(ability, request);
         if (!result) {
           throw new ForbiddenException('权限不足');

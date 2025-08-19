@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-15 19:11:54
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-13 15:42:54
+ * @LastEditTime: 2025-08-19 15:27:34
  * @FilePath: /myself-space/nestjs/src/auth/auth.module.ts
  * @Description: 优化的认证模块
  */
@@ -20,9 +20,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as yaml from 'js-yaml';
-import { YamlConfig } from '../../config/database.config';
+import { YamlConfig } from '../../database/typeorm/database.config';
 import { PasswordService } from '../../common/services/password.service';
 import { RedisService } from '../../common/services/redis.service';
+import { CaslAbilityFactory, CaslGuard } from './casl';
 
 const env = process.env.NODE_ENV || 'production';
 const {
@@ -63,7 +64,9 @@ const {
     AuthService,
     PasswordService,
     RedisService, // 使用 RedisService 替代 Redis 类
+    CaslAbilityFactory,
+    CaslGuard,
   ],
-  exports: [AuthService],
+  exports: [AuthService, CaslAbilityFactory, CaslGuard],
 })
 export class AuthModule {}

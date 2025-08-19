@@ -11,12 +11,15 @@ import { MenusService } from './menus.service';
 import { MenusController } from './menus.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Menu } from '../../database/entities/menu.entity';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Menu]), UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Menu]),
+    AuthModule, // 导入 AuthModule 以获取 CASL 功能
+  ],
   controllers: [MenusController],
-  providers: [MenusService, RolesGuard],
+  providers: [MenusService],
   exports: [MenusService],
 })
 export class MenusModule {}

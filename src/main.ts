@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-12 19:39:53
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-13 15:54:24
+ * @LastEditTime: 2025-08-19 15:27:56
  * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/main.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -11,7 +11,7 @@ import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptors';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { http } from './config/database.config';
+import { http } from './database/typeorm/database.config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { createWinstonLogger } from './common/logger/winston.logger';
 import {
