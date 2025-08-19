@@ -2,12 +2,12 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 14:12:16
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-05-06 15:43:58
+ * @LastEditTime: 2025-08-18 16:01:04
  * @FilePath: /mvw_project/Users/changcheng/Desktop/testjs-demo/src/dynamic/dynamic.service.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { Injectable, Inject, Scope } from '@nestjs/common';
-const CONFIG_OPTIONS = 'CONFIG_OPTIONS';
+export const CONFIG_OPTIONS = 'CONFIG_OPTIONS';
 @Injectable({ scope: Scope.TRANSIENT })
 export class DynamicService {
   // CONFIG_OPTIONS是一个注入令牌，用于在动态模块中传递配置选项

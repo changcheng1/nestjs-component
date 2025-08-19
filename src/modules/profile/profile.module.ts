@@ -18,4 +18,4 @@ import { Profile } from '../../database/entities/profile.entity';
   providers: [ProfileService],
   exports: [ProfileService],
 })
-export class ProfileModule {} 
+export class ProfileModule {}

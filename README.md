@@ -2,10 +2,14 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-08-06 11:35:20
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-06 18:48:16
+ * @LastEditTime: 2025-08-18 19:52:29
  * @FilePath: /myself-space/nestjs/README.md
  * @Description: NestJS Docker 部署指南
 -->
+# NestJS生命周期
+
+![NestJS 生命周期](./lifeCycle.png)
+
 
 # NestJS Docker 部署指南
 
@@ -25,7 +29,9 @@ open -a Docker
 
 ### 构建镜像
 ```bash
-docker build -t nestjs .
+
+docker compose -f docker-compose.yml up -d --build
+
 ```
 
 ### 使用Docker Compose本地运行
@@ -84,7 +90,7 @@ cd nestjs
 docker build -t nestjs-pm2 .
 
 # 启动服务
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ## 🐳 Docker Compose 管理
@@ -163,11 +169,11 @@ docker stats
 ### 端口冲突
 ```bash
 # 检查端口占用
-netstat -tlnp | grep :3000
+netstat -tlnp | grep :3001
 netstat -tlnp | grep :3306
 
 # 停止占用端口的进程
-sudo kill -9 $(lsof -ti:3000)
+sudo kill -9 $(lsof -ti:3001)
 sudo kill -9 $(lsof -ti:3306)
 ```
 
@@ -246,10 +252,10 @@ docker-compose logs -f
 
 ## 🌍 访问地址
 
-- **本地开发**: http://localhost:3000
-- **服务器**: http://39.107.246.96:3000
-- **API文档**: http://localhost:3000/api
-- **健康检查**: http://localhost:3000/health
+- **本地开发**: http://localhost:3001
+- **服务器**: http://39.107.246.96:3001
+- **API文档**: http://localhost:3001/api
+- **健康检查**: http://localhost:3001/health
 
 ## 📊 监控和日志
 

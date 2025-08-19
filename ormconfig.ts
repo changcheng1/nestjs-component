@@ -27,5 +27,4 @@ export default new DataSource({
   ],
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',
-  synchronize: false, // 生产环境关闭自动同步
 });
