@@ -48,6 +48,15 @@ export class Profile {
   })
   address: string;
 
+  @Column({
+    name: 'tenant_id',
+    type: 'varchar',
+    length: 10,
+    comment: '租户ID',
+    default: '1',
+  })
+  tenantId: string;
+
   @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamp',

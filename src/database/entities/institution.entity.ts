@@ -30,4 +30,13 @@ export class Institution {
   @IsNotEmpty()
   @Column()
   institutionName: string;
+
+  @Column({
+    name: 'tenant_id',
+    type: 'varchar',
+    length: 10,
+    comment: '租户ID',
+    default: '1',
+  })
+  tenantId: string;
 }

@@ -42,6 +42,16 @@ export class User {
   })
   password: string;
 
+  @ApiProperty({ description: '租户ID', example: '1' })
+  @Column({
+    name: 'tenant_id',
+    type: 'varchar',
+    length: 10,
+    comment: '租户ID',
+    default: '1',
+  })
+  tenantId: string;
+
   @DeleteDateColumn({
     name: 'deleted_at',
     type: 'timestamp',

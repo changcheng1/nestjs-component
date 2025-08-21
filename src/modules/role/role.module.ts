@@ -11,11 +11,22 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoleController } from './role.controller';
 import { RoleService } from './role.service';
 import { Role } from '../../database/entities/role.entity';
+import { TenantContextService } from '../../common/services/tenant-context.service';
+import { createTenantRepositoryProvider } from '../../common/providers/tenant-repository.provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Role])],
+  imports: [
+    // 注册多租户实体到两个数据库连接
+    TypeOrmModule.forFeature([Role], 'tenant1'),
+    TypeOrmModule.forFeature([Role], 'tenant2'),
+  ],
   controllers: [RoleController],
-  providers: [RoleService],
+  providers: [
+    RoleService,
+    TenantContextService,
+    // 多租户Repository提供者
+    createTenantRepositoryProvider(Role),
+  ],
   exports: [RoleService],
 })
 export class RoleModule {}

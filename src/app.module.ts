@@ -19,6 +19,8 @@ import {
   MenusModule,
 } from './modules';
 import { LoggerMiddleware } from './common/middleware/loggerClass.middleware';
+import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { TenantContextService } from './common/services/tenant-context.service';
 import { UserController } from './modules/user/user.controller';
 import { NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -26,7 +28,7 @@ import { AppController } from './app.controller';
 @Global()
 @Module({
   imports: [
-    // 使用简化的多数据库配置 - MySQL(默认) + MongoDB
+    // 使用多租户数据库配置 - Tenant1 + Tenant2 + MongoDB
     ...DatabaseConfigBuilder.create().map((config) =>
       TypeOrmModule.forRootAsync(config),
     ),
@@ -39,10 +41,16 @@ import { AppController } from './app.controller';
     MenusModule,
   ],
   controllers: [AppController],
+  providers: [TenantContextService],
+  exports: [TenantContextService],
 })
 // 使用函数中间件
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // 应用日志中间件
     consumer.apply(LoggerMiddleware).forRoutes(UserController);
+
+    // 应用租户中间件到所有路由
+    consumer.apply(TenantMiddleware).forRoutes('*');
   }
 }

@@ -11,11 +11,22 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { InstitutionController } from './institution.controller';
 import { InstitutionService } from './institution.service';
 import { Institution } from '../../database/entities/institution.entity';
+import { TenantContextService } from '../../common/services/tenant-context.service';
+import { createTenantRepositoryProvider } from '../../common/providers/tenant-repository.provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Institution])],
+  imports: [
+    // 注册多租户实体到两个数据库连接
+    TypeOrmModule.forFeature([Institution], 'tenant1'),
+    TypeOrmModule.forFeature([Institution], 'tenant2'),
+  ],
   controllers: [InstitutionController],
-  providers: [InstitutionService],
+  providers: [
+    InstitutionService,
+    TenantContextService,
+    // 多租户Repository提供者
+    createTenantRepositoryProvider(Institution),
+  ],
   exports: [InstitutionService],
 })
 export class InstitutionModule {}

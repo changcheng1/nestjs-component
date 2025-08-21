@@ -25,7 +25,7 @@ RUN pnpm run build
 RUN mkdir -p logs
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 3001
 
 # 使用PM2启动应用
 CMD ["pm2-runtime", "dist/src/main.js"]

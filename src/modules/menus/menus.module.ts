@@ -12,14 +12,23 @@ import { MenusController } from './menus.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Menu } from '../../database/entities/menu.entity';
 import { AuthModule } from '../auth/auth.module';
+import { TenantContextService } from '../../common/services/tenant-context.service';
+import { createTenantRepositoryProvider } from '../../common/providers/tenant-repository.provider';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Menu]),
+    // 注册多租户实体到两个数据库连接
+    TypeOrmModule.forFeature([Menu], 'tenant1'),
+    TypeOrmModule.forFeature([Menu], 'tenant2'),
     AuthModule, // 导入 AuthModule 以获取 CASL 功能
   ],
   controllers: [MenusController],
-  providers: [MenusService],
+  providers: [
+    MenusService,
+    TenantContextService,
+    // 多租户Repository提供者
+    createTenantRepositoryProvider(Menu),
+  ],
   exports: [MenusService],
 })
 export class MenusModule {}

@@ -15,7 +15,7 @@ const env = process.env.NODE_ENV || 'production';
 
 export interface YamlConfig {
   db: {
-    mysql: {
+    tenant1: {
       type: 'mysql';
       host: string;
       port: number;
@@ -23,6 +23,17 @@ export interface YamlConfig {
       password: string;
       database: string;
       synchronize: boolean;
+      logging: boolean;
+    };
+    tenant2: {
+      type: 'mysql';
+      host: string;
+      port: number;
+      username: string;
+      password: string;
+      database: string;
+      synchronize: boolean;
+      logging: boolean;
     };
     mongodb: {
       type: 'mongodb';
@@ -32,6 +43,7 @@ export interface YamlConfig {
       password: string;
       database: string;
       synchronize: boolean;
+      logging: boolean;
     };
   };
   http: { host: string; port: number };
@@ -54,43 +66,52 @@ const yamlConfig = yaml.load(
   readFileSync(join(process.cwd(), `env.${env}.yml`), 'utf8'),
 ) as YamlConfig;
 
-const { db, http, redis } = yamlConfig;
+const { db, http } = yamlConfig;
 
 // 数据库同步控制：支持环境变量强制覆盖
 export const databaseConfig = {
   ...db,
-  mysql: {
-    ...db.mysql,
-    synchronize: redis.synchronize,
+  tenant1: {
+    ...db.tenant1,
+    synchronize: db.tenant1.synchronize,
+  },
+  tenant2: {
+    ...db.tenant2,
+    synchronize: db.tenant2.synchronize,
   },
   mongodb: {
     ...db.mongodb,
-    synchronize: redis.synchronize,
+    synchronize: db.mongodb.synchronize,
   },
 };
 
 export { databaseConfig as db, http };
 
-// MySQL DataSource 配置
-export const createMySqlDataSource = (): DataSourceOptions => ({
-  type: 'mysql',
-  host: databaseConfig.mysql.host,
-  port: databaseConfig.mysql.port,
-  username: databaseConfig.mysql.username,
-  password: databaseConfig.mysql.password,
-  database: databaseConfig.mysql.database,
-  synchronize: databaseConfig.mysql.synchronize,
-  logging: process.env.NODE_ENV === 'development',
-  entities: [
-    __dirname + '/../entities/user.entity{.ts,.js}',
-    __dirname + '/../entities/profile.entity{.ts,.js}',
-    __dirname + '/../entities/role.entity{.ts,.js}',
-    __dirname + '/../entities/user-role.entity{.ts,.js}',
-    __dirname + '/../entities/user-profile.entity{.ts,.js}',
-    __dirname + '/../entities/institution.entity{.ts,.js}',
-    __dirname + '/../entities/menu.entity{.ts,.js}',
-  ],
-});
+// 创建租户数据库配置
+export const createTenantDataSource = (tenantId: string): DataSourceOptions => {
+  const tenantConfig =
+    tenantId === '1' ? databaseConfig.tenant1 : databaseConfig.tenant2;
+
+  return {
+    type: 'mysql',
+    host: tenantConfig.host,
+    port: tenantConfig.port,
+    username: tenantConfig.username,
+    password: tenantConfig.password,
+    database: tenantConfig.database,
+    synchronize: tenantConfig.synchronize,
+    logging: tenantConfig.logging,
+    entities: [
+      __dirname + '/../entities/user.entity{.ts,.js}',
+      __dirname + '/../entities/profile.entity{.ts,.js}',
+      __dirname + '/../entities/role.entity{.ts,.js}',
+      __dirname + '/../entities/user-role.entity{.ts,.js}',
+      __dirname + '/../entities/user-profile.entity{.ts,.js}',
+      __dirname + '/../entities/institution.entity{.ts,.js}',
+      __dirname + '/../entities/menu.entity{.ts,.js}',
+    ],
+  };
+};
 
 // MongoDB DataSource 配置
 export const createMongoDataSource = (): DataSourceOptions => ({
@@ -101,14 +122,19 @@ export const createMongoDataSource = (): DataSourceOptions => ({
   password: databaseConfig.mongodb.password,
   database: databaseConfig.mongodb.database,
   synchronize: databaseConfig.mongodb.synchronize,
-  logging: process.env.NODE_ENV === 'development',
+  logging: databaseConfig.mongodb.logging,
   entities: [__dirname + '/../entities/logs.entity{.ts,.js}'],
 });
 
-// 创建 MySQL DataSource 实例
-export const mysqlDataSource = new DataSource({
-  ...createMySqlDataSource(),
-  name: 'mysql',
+// 创建租户 DataSource 实例
+export const tenant1DataSource = new DataSource({
+  ...createTenantDataSource('1'),
+  name: 'tenant1',
+});
+
+export const tenant2DataSource = new DataSource({
+  ...createTenantDataSource('2'),
+  name: 'tenant2',
 });
 
 // 创建 MongoDB DataSource 实例
@@ -119,15 +145,18 @@ export const mongoDataSource = new DataSource({
 
 // 导出所有 DataSource 实例
 export const dataSources = {
-  mysql: mysqlDataSource,
+  tenant1: tenant1DataSource,
+  tenant2: tenant2DataSource,
   mongodb: mongoDataSource,
 };
 
 // 导出配置函数，用于 TypeOrmModule.forRootAsync
 export const createDataSourceConfig = (name: string) => {
   switch (name) {
-    case 'mysql':
-      return createMySqlDataSource();
+    case 'tenant1':
+      return createTenantDataSource('1');
+    case 'tenant2':
+      return createTenantDataSource('2');
     case 'mongodb':
       return createMongoDataSource();
     default:

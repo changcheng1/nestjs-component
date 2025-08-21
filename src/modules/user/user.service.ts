@@ -6,7 +6,7 @@
  * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/src/user/user.service.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, Inject } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
 import { CommonService } from '../../common/services/common.service';
@@ -18,23 +18,27 @@ import { PasswordService } from '../../common/services/password.service';
 import { UserRole } from '../../database/entities/user-role.entity';
 import { UserRoleUpdateService } from './services/user-role-update.service';
 import { Role } from '../../database/entities/role.entity';
+import { TenantContextService } from '../../common/services/tenant-context.service';
 export interface defaultUser {
   username: string;
   password: string;
 }
 
+@Injectable()
 export class UserService implements OnModuleInit {
   constructor(
-    @InjectRepository(User) private readonly usersRepository: Repository<User>,
-    @InjectRepository(UserRole)
+    @Inject('UserRepository')
+    private readonly usersRepository: Repository<User>,
+    @Inject('UserRoleRepository')
     private readonly userRolesRepository: Repository<UserRole>,
-    @InjectRepository(Role)
+    @Inject('RoleRepository')
     private readonly roleRepository: Repository<Role>,
     private CommonService: CommonService,
     private moduleRef: ModuleRef,
     private discoveryService: DiscoveryService,
     private passwordService: PasswordService,
     private userRoleUpdateService: UserRoleUpdateService,
+    private tenantContextService: TenantContextService,
   ) {}
 
   // 在模块初始化时，调用
@@ -60,11 +64,34 @@ export class UserService implements OnModuleInit {
       throw new Error('密码不能为空');
     }
 
+    // 获取当前租户信息
+    const currentTenantId = this.tenantContextService.getCurrentTenantId();
+    const connectionName = this.tenantContextService.getCurrentConnectionName();
+
+    console.log(
+      `🏢 创建用户 - 当前租户: ${currentTenantId}, 数据库连接: ${connectionName}`,
+    );
+
     // 加密密码
     user.password = await this.passwordService.hashPassword(password);
 
+    // 确保设置正确的租户ID
+    const userData = {
+      ...user,
+      tenantId: currentTenantId,
+    } as User;
+
+    console.log(`💾 保存用户数据:`, {
+      ...userData,
+      password: '[HIDDEN]',
+    });
+
     // 保存用户
-    const savedUser = await this.usersRepository.save(user as User);
+    const savedUser = await this.usersRepository.save(userData);
+
+    console.log(
+      `✅ 用户已保存到租户${currentTenantId}数据库, 用户ID: ${savedUser.id}`,
+    );
 
     // 如果有角色数据，更新中间表
     if (roles && Array.isArray(roles) && roles.length > 0) {

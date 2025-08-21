@@ -21,10 +21,13 @@ import { UserRole } from '../../database/entities/user-role.entity';
 import { UserRoleUpdateService } from './services/user-role-update.service';
 import { UserRoleService } from './services/user-role.service';
 import { Role } from '../../database/entities/role.entity';
+import { TenantContextService } from '../../common/services/tenant-context.service';
+import { createTenantRepositoryProvider } from '../../common/providers/tenant-repository.provider';
 @Module({
   imports: [
-    // 只注册User实体
-    TypeOrmModule.forFeature([User, UserRole, Role]),
+    // 注册多租户实体到两个数据库连接
+    TypeOrmModule.forFeature([User, UserRole, Role], 'tenant1'),
+    TypeOrmModule.forFeature([User, UserRole, Role], 'tenant2'),
     // 动态模块
     ConfigModuleClass.register({ foler: 'development' }),
     // 循环依赖
@@ -37,6 +40,11 @@ import { Role } from '../../database/entities/role.entity';
     PasswordService,
     UserRoleUpdateService,
     UserRoleService,
+    TenantContextService,
+    // 多租户Repository提供者
+    createTenantRepositoryProvider(User),
+    createTenantRepositoryProvider(UserRole),
+    createTenantRepositoryProvider(Role),
     {
       provide: CommonService,
       // 使用工厂函数创建实例

@@ -35,6 +35,9 @@ export class Logs {
   @Column()
   userId: number;
 
+  @Column({ default: '1', comment: '租户ID' })
+  tenantId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
