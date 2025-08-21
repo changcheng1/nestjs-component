@@ -53,4 +53,9 @@ export class GetUserDto {
     photo?: string;
     address?: string;
   };
+
+  @ApiProperty({ description: '租户ID', example: '1', required: false })
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
 }

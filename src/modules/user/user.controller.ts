@@ -37,6 +37,7 @@ import { User } from '../../database/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SerializeInterceptor } from '../../common/interceptors/serialize.interceptors';
 import { UserResponseDto } from './dto/user-response.dto';
+import { TenantInterceptor } from '../../common/interceptors/tenant.interceptor';
 
 // 定义请求类型
 interface RequestWithUser extends Request {
@@ -51,6 +52,7 @@ interface RequestWithUser extends Request {
 @ApiBearerAuth()
 @Controller('user')
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(TenantInterceptor) // 应用租户拦截器
 @UseFilters(new TypeOrmExceptionFilter()) // Changed to use class reference instead of instance
 export class UserController {
   constructor(private readonly userService: UserService) {}

@@ -112,20 +112,31 @@ export class AuthService {
    * 注册新用户
    * @param username 用户名
    * @param password 密码
+   * @param tenantId 租户ID（从拦截器注入）
    * @returns 返回注册的用户信息
    */
-  async signUp(username: string, password: string): Promise<SignUpResponseDto> {
+  async signUp(
+    username: string,
+    password: string,
+    tenantId?: string,
+  ): Promise<SignUpResponseDto> {
     try {
-      // 查找用户是否存在
+      console.log(`🏢 Auth注册 - 租户ID: ${tenantId}, 用户名: ${username}`);
+
+      // 查找用户是否存在（在当前租户下）
       const findUser = await this.usersService.findOne(username);
       if (findUser) {
         throw new HttpException('用户已存在', HttpStatus.BAD_REQUEST);
       }
-      // 创建新用户
+
+      // 创建新用户（包含租户ID）
       const user = await this.usersService.addUser({
         username,
         password,
+        tenantId, // 传递租户ID
       });
+
+      console.log(`✅ 用户注册成功 - 租户: ${tenantId}, 用户ID: ${user.id}`);
 
       // 使用 plainToClass 确保密码字段被排除
       const responseDto = plainToClass(SignUpResponseDto, user, {
@@ -134,6 +145,10 @@ export class AuthService {
 
       return responseDto;
     } catch (error) {
+      console.error(
+        `❌ 注册失败 - 租户: ${tenantId}, 用户名: ${username}`,
+        error,
+      );
       if (error instanceof HttpException) {
         throw error;
       }

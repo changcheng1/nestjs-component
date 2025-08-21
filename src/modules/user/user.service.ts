@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 17:18:14
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 19:53:59
+ * @LastEditTime: 2025-08-21 11:29:04
  * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/src/user/user.service.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -18,7 +18,6 @@ import { PasswordService } from '../../common/services/password.service';
 import { UserRole } from '../../database/entities/user-role.entity';
 import { UserRoleUpdateService } from './services/user-role-update.service';
 import { Role } from '../../database/entities/role.entity';
-import { TenantContextService } from '../../common/services/tenant-context.service';
 export interface defaultUser {
   username: string;
   password: string;
@@ -38,7 +37,6 @@ export class UserService implements OnModuleInit {
     private discoveryService: DiscoveryService,
     private passwordService: PasswordService,
     private userRoleUpdateService: UserRoleUpdateService,
-    private tenantContextService: TenantContextService,
   ) {}
 
   // 在模块初始化时，调用
@@ -53,35 +51,34 @@ export class UserService implements OnModuleInit {
 
   /**
    * 添加用户
-   * @param user 用户
+   * @param user 用户（包含从拦截器注入的 tenantId）
    * @returns 添加后的用户
    */
   async addUser(user: Partial<GetUserDto>): Promise<User> {
-    const { password, roles } = user;
+    const { password, roles, tenantId } = user;
 
     // 验证密码是否存在
     if (!password) {
       throw new Error('密码不能为空');
     }
 
-    // 获取当前租户信息
-    const currentTenantId = this.tenantContextService.getCurrentTenantId();
-    const connectionName = this.tenantContextService.getCurrentConnectionName();
+    // 验证租户ID是否存在（由拦截器注入）
+    if (!tenantId) {
+      throw new Error('租户ID不能为空');
+    }
 
-    console.log(
-      `🏢 创建用户 - 当前租户: ${currentTenantId}, 数据库连接: ${connectionName}`,
-    );
+    console.log(`🏢 创建用户 - 租户ID: ${tenantId}`);
 
     // 加密密码
     user.password = await this.passwordService.hashPassword(password);
 
-    // 确保设置正确的租户ID
+    // 创建用户数据（tenantId 由拦截器提供）
     const userData = {
       ...user,
-      tenantId: currentTenantId,
+      tenantId, // 使用拦截器注入的 tenantId
     } as User;
 
-    console.log(`💾 保存用户数据:`, {
+    console.log(`💾 保存用户到租户${tenantId}数据库:`, {
       ...userData,
       password: '[HIDDEN]',
     });
@@ -90,7 +87,7 @@ export class UserService implements OnModuleInit {
     const savedUser = await this.usersRepository.save(userData);
 
     console.log(
-      `✅ 用户已保存到租户${currentTenantId}数据库, 用户ID: ${savedUser.id}`,
+      `✅ 用户已保存到租户${tenantId}数据库, 用户ID: ${savedUser.id}`,
     );
 
     // 如果有角色数据，更新中间表
@@ -108,8 +105,11 @@ export class UserService implements OnModuleInit {
   /**
    * 删除用户
    * @param id 用户id
+   * @param tenantId 租户ID（从拦截器注入）
    */
-  async removeUser(id: number): Promise<void> {
+  async removeUser(id: number, tenantId?: string): Promise<void> {
+    console.log(`🗑️ 删除用户 ID: ${id}, 租户: ${tenantId}`);
+
     const user = await this.usersRepository.findOne({
       where: { id },
     });
@@ -120,6 +120,8 @@ export class UserService implements OnModuleInit {
     // 使用softRemove进行软删除，这样数据不会真正从数据库中删除
     // 而是将deletedAt字段设置为当前时间
     await this.usersRepository.softRemove(user);
+
+    console.log(`✅ 用户 ID: ${id} 已从租户${tenantId}数据库软删除`);
   }
 
   /**

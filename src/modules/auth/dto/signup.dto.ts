@@ -1,13 +1,13 @@
 /*
  * @Author: changcheng 364000100@#qq.com
- * @Date: 2025-07-05 12:50:00
+ * @Date: 2025-07-12 13:41:41
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-07-10 19:40:28
- * @FilePath: /myself-space/nestjs/src/auth/dto/signup.dto.ts
- * @Description: 注册 DTO
+ * @LastEditTime: 2025-08-21 11:50:32
+ * @FilePath: /myself-space/nestjs/src/modules/auth/dto/signup.dto.ts
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length, IsOptional } from 'class-validator';
 import { Exclude, Expose } from 'class-transformer';
 
 export class SignUpDto {
@@ -22,6 +22,11 @@ export class SignUpDto {
   @IsString({ message: '密码必须是字符串' })
   @Length(6, 50, { message: '密码长度必须在6到50个字符之间' })
   password: string;
+
+  @ApiProperty({ description: '租户ID', example: '1', required: false })
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
 }
 
 // 注册响应 DTO

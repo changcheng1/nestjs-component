@@ -40,7 +40,6 @@ import { createTenantRepositoryProvider } from '../../common/providers/tenant-re
     PasswordService,
     UserRoleUpdateService,
     UserRoleService,
-    TenantContextService,
     // 多租户Repository提供者
     createTenantRepositoryProvider(User),
     createTenantRepositoryProvider(UserRole),

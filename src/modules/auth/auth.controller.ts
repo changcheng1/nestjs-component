@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-15 19:12:04
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-13 15:43:42
+ * @LastEditTime: 2025-08-21 11:50:40
  * @FilePath: /myself-space/nestjs/src/auth/auth.controller.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -23,6 +23,7 @@ import { SignUpDto } from './dto/signup.dto';
 import { SerializeInterceptor } from '../../common/interceptors/serialize.interceptors';
 import { UserResponseDto } from '../user/dto/user-response.dto';
 import { RedisService } from '../../common/services/redis.service';
+import { TenantInterceptor } from '../../common/interceptors/tenant.interceptor';
 
 // 定义请求类型
 interface RequestWithUser {
@@ -35,6 +36,7 @@ interface RequestWithUser {
 
 @ApiTags('认证管理')
 @Controller('auth')
+@UseInterceptors(TenantInterceptor) // 应用租户拦截器
 export class AuthController {
   constructor(
     private authService: AuthService,
@@ -84,10 +86,10 @@ export class AuthController {
   // 返回拦截器进行拦截，返回UserResponseDto
   @UseInterceptors(new SerializeInterceptor(UserResponseDto))
   signUp(@Body() signUpDto: SignUpDto) {
-    const { username, password } = signUpDto;
+    const { username, password, tenantId } = signUpDto;
     if (!username || !password) {
       throw new HttpException('用户名和密码不能为空', HttpStatus.BAD_REQUEST);
     }
-    return this.authService.signUp(username, password);
+    return this.authService.signUp(username, password, tenantId);
   }
 }
