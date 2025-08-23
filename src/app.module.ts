@@ -17,7 +17,9 @@ import {
   LogsModule,
   InstitutionModule,
   MenusModule,
+  ContractModule,
 } from './modules';
+import { DownloadModule } from './modules/download/download.module';
 import { LoggerMiddleware } from './common/middleware/loggerClass.middleware';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { TenantContextService } from './common/services/tenant-context.service';
@@ -39,6 +41,8 @@ import { AppController } from './app.controller';
     ProfileModule,
     RoleModule,
     MenusModule,
+    ContractModule,
+    DownloadModule,
   ],
   controllers: [AppController],
   providers: [TenantContextService],

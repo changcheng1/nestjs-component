@@ -32,3 +32,8 @@ export * from './institution/institution.service';
 export * from './menus/menus.module';
 export * from './menus/menus.controller';
 export * from './menus/menus.service';
+
+// 合同模块
+export * from './contract/contract.module';
+export * from './contract/contract.controller';
+export * from './contract/contract.service';

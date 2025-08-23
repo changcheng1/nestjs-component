@@ -20,7 +20,7 @@ export class TenantInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     // 获取租户ID（由中间件设置）
-    const tenantId = request.tenantId || '1';
+    const tenantId = (request as any).tenantId || '1';
 
     // 将 tenantId 添加到请求体中
     if (request.body && typeof request.body === 'object') {

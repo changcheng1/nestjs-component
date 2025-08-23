@@ -2,7 +2,7 @@ services:
   web:
     build: .
     ports:
-      - '3000:3001'  #容器端口3001映射到宿主机端口3000
+      - '3000:3000'  #容器端口3000映射到宿主机端口3000
     environment:
       - NODE_ENV=production
       - REDIS_HOST=redis

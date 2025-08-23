@@ -40,4 +40,4 @@ export class ProfileService {
   remove(id: number) {
     return this.profileRepository.delete(id);
   }
-} 
+}

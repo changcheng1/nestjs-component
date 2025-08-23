@@ -53,6 +53,19 @@ async function bootstrap() {
   );
   // 已在创建阶段注入，无需再次调用 app.useLogger
   app.setGlobalPrefix('api/v1');
+  // 启用 CORS
+  app.enableCors({
+    origin: [
+      'http://localhost:4001',
+      'http://127.0.0.1:4001',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
+  });
+
   // 设置应用关闭钩子
   app.enableShutdownHooks();
 

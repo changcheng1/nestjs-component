@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-15 19:11:54
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-19 15:27:34
+ * @LastEditTime: 2025-08-21 17:43:37
  * @FilePath: /myself-space/nestjs/src/auth/auth.module.ts
  * @Description: 优化的认证模块
  */
@@ -13,7 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
+import { LocalV2Strategy } from './strategies/local-v2.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -34,7 +34,10 @@ const {
 
 @Module({
   imports: [
-    PassportModule,
+    PassportModule.register({
+      defaultStrategy: 'local',
+      session: false,
+    }),
     UserModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -57,15 +60,15 @@ const {
   ],
   controllers: [AuthController],
   providers: [
-    JwtAuthGuard,
-    LocalAuthGuard,
+    LocalV2Strategy,
     JwtStrategy,
-    LocalStrategy,
     AuthService,
     PasswordService,
     RedisService, // 使用 RedisService 替代 Redis 类
     CaslAbilityFactory,
     CaslGuard,
+    LocalAuthGuard,
+    JwtAuthGuard,
   ],
   exports: [AuthService, CaslAbilityFactory, CaslGuard],
 })

@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-05-15 19:12:09
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-07-12 13:40:46
+ * @LastEditTime: 2025-08-21 17:23:36
  * @FilePath: /myself-space/nestjs/src/auth/auth.service.ts
  * @Description: 优化的认证服务
  */
@@ -34,11 +34,13 @@ export class AuthService {
    * 验证用户
    * @param username 用户名
    * @param pass 密码
+   * @param tenantId 租户ID
    * @returns 返回用户信息（不包含密码）
    */
   async validateUser(
     username: string,
     pass: string,
+    tenantId: string = '1',
   ): Promise<{
     id: number;
     username: string;
@@ -47,9 +49,11 @@ export class AuthService {
       console.log('validateUser 开始验证:', {
         username,
         passLength: pass?.length,
+        tenantId,
       });
 
-      const user = await this.usersService.findOne(username);
+      // 根据租户ID查找用户
+      const user = await this.usersService.findOneByTenant(username, tenantId);
       if (user) {
         // 验证密码
         const isPasswordValid = await this.passwordService.verifyPassword(
@@ -57,11 +61,14 @@ export class AuthService {
           user.password,
         );
         if (isPasswordValid) {
+          console.log(`✅ 用户验证成功 - 租户: ${tenantId}, 用户: ${username}`);
           // 直接返回用户对象，让 @Exclude() 装饰器处理密码排除
           return user;
+        } else {
+          console.log(`❌ 密码验证失败 - 租户: ${tenantId}, 用户: ${username}`);
         }
       } else {
-        console.log('用户不存在:', username);
+        console.log(`❌ 用户不存在 - 租户: ${tenantId}, 用户: ${username}`);
       }
       return null;
     } catch (error) {
@@ -80,7 +87,7 @@ export class AuthService {
     try {
       // 使用 validateUser 方法验证用户和密码
       const validatedUser = await this.validateUser(username, password);
-
+      console.log('validatedUser', validatedUser);
       if (!validatedUser) {
         throw new HttpException('用户名或密码错误', HttpStatus.UNAUTHORIZED);
       }

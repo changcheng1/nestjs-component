@@ -12,8 +12,8 @@ WORKDIR /app
 # 复制依赖文件
 COPY package.json pnpm-lock.yaml ./
 
-# 安装依赖
-RUN pnpm install
+# 安装依赖 (允许更新 lockfile)
+RUN pnpm install --no-frozen-lockfile
 
 # 复制项目文件
 COPY . .
@@ -25,7 +25,7 @@ RUN pnpm run build
 RUN mkdir -p logs
 
 # 暴露端口
-EXPOSE 3001
+EXPOSE 3000
 
 # 使用PM2启动应用
 CMD ["pm2-runtime", "dist/src/main.js"]

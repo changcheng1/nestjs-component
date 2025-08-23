@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { SimpleAuthGuard } from './guards/simple-auth.guard';
 import { SignUpDto } from './dto/signup.dto';
 import { SerializeInterceptor } from '../../common/interceptors/serialize.interceptors';
 import { UserResponseDto } from '../user/dto/user-response.dto';
@@ -63,7 +63,7 @@ export class AuthController {
     },
   })
   @Post('/signIn')
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(SimpleAuthGuard)
   async signIn(@Request() req: RequestWithUser): Promise<any> {
     // LocalAuthGuard 验证成功后，用户信息会被附加到 req.user
     // LocalStrategy.validate 已经验证了用户名密码，返回的用户信息不包含密码

@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 17:18:14
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-21 11:29:04
+ * @LastEditTime: 2025-08-21 19:08:57
  * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/src/user/user.service.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -174,6 +174,39 @@ export class UserService implements OnModuleInit {
       where: { username },
     });
     return user;
+  }
+
+  /**
+   * 根据租户ID查找用户
+   * @param username 用户名
+   * @param tenantId 租户ID
+   * @returns 用户或null
+   */
+  async findOneByTenant(
+    username: string,
+    tenantId: string,
+  ): Promise<User | null> {
+    console.log(`🔍 在租户${tenantId}中查找用户: ${username}`);
+
+    try {
+      const user = await this.usersRepository.findOne({
+        where: {
+          username,
+          tenantId, // 根据租户ID过滤
+        },
+      });
+
+      if (user) {
+        console.log(`✅ 在租户${tenantId}中找到用户: ${username}`);
+      } else {
+        console.log(`❌ 在租户${tenantId}中未找到用户: ${username}`);
+      }
+
+      return user;
+    } catch (error) {
+      console.error(`💥 在租户${tenantId}中查找用户${username}时出错:`, error);
+      return null;
+    }
   }
 
   /**
