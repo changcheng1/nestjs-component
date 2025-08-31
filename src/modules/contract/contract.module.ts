@@ -12,10 +12,12 @@ import { memoryStorage } from 'multer';
 import { ContractController } from './contract.controller';
 import { ContractService } from './contract.service';
 import { AuthModule } from '../auth/auth.module';
+import { DownloadModule } from '../download/download.module';
 
 @Module({
   imports: [
     AuthModule, // 导入 AuthModule 以提供 AuthService
+    DownloadModule, // 导入 DownloadModule 以提供 DownloadService
     // 配置 Multer 用于文件上传
     MulterModule.register({
       // 使用内存存储，不保存到磁盘

@@ -6,6 +6,7 @@ import {
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as docx from 'docx-templates';
+import { DownloadService } from '../download/download.service';
 
 @Injectable()
 export class ContractService {
@@ -14,7 +15,7 @@ export class ContractService {
   private readonly templatesDir = './uploads/templates';
   private readonly generatedDir = './uploads/generated';
 
-  constructor() {
+  constructor(private readonly downloadService: DownloadService) {
     void this.ensureDirectories();
   }
 
@@ -71,17 +72,38 @@ export class ContractService {
     downloadUrl: string;
   }> {
     try {
+      this.logger.log(
+        '收到生成合同请求:',
+        JSON.stringify(generateDto, null, 2),
+      );
+
       const { templateId, tenantId, contractData } = generateDto;
+
+      // 验证必要的数据
+      if (!contractData) {
+        throw new Error('contractData 不能为空');
+      }
+
+      if (!contractData.name) {
+        throw new Error('员工姓名不能为空');
+      }
+
+      if (!contractData) {
+        throw new Error('contractData 不能为空');
+      }
 
       this.logger.log(
         `开始生成合同 - 租户: ${tenantId}, 员工: ${contractData.name}`,
       );
 
       // 1. 验证模板文件是否存在
-      const templatePath = path.join(this.templatesDir, templateId);
-      if (!(await fs.pathExists(templatePath))) {
+      const templateExists =
+        await this.downloadService.templateExists(templateId);
+      if (!templateExists) {
         throw new Error('模板文件不存在');
       }
+
+      const templatePath = this.downloadService.getTemplatePath(templateId);
 
       // 2. 准备替换数据
       const replacementData = this.prepareReplacementData(contractData);
@@ -93,11 +115,11 @@ export class ContractService {
       );
 
       // 4. 保存生成的文档
-      const outputFileName = this.generateOutputFileName(contractData);
-      const outputPath = path.join(
-        this.generatedDir,
-        `${tenantId}_${outputFileName}`,
+      const outputFileName = this.generateOutputFileName(
+        contractData,
+        templateId,
       );
+      const outputPath = path.join(this.generatedDir, outputFileName);
 
       await fs.writeFile(outputPath, generatedDoc);
 
@@ -107,7 +129,7 @@ export class ContractService {
         success: true,
         filePath: outputPath,
         fileName: outputFileName,
-        downloadUrl: `/contracts/download/${path.basename(outputPath)}`,
+        downloadUrl: `/api/v1/contracts/download/${outputFileName}`,
       };
     } catch (error) {
       this.logger.error('合同生成失败:', error);
@@ -151,11 +173,11 @@ export class ContractService {
       );
 
       // 4. 保存生成的文档
-      const outputFileName = this.generateOutputFileName(contractData);
-      const outputPath = path.join(
-        this.generatedDir,
-        `${tenantId}_${outputFileName}`,
+      const outputFileName = this.generateOutputFileName(
+        contractData,
+        templateFile.originalname,
       );
+      const outputPath = path.join(this.generatedDir, outputFileName);
 
       await fs.writeFile(outputPath, generatedDoc);
 
@@ -165,7 +187,7 @@ export class ContractService {
         success: true,
         filePath: outputPath,
         fileName: outputFileName,
-        downloadUrl: `/api/v1/contracts/download/${path.basename(outputPath)}`,
+        downloadUrl: `/api/v1/contracts/download/${outputFileName}`,
       };
     } catch (error) {
       this.logger.error('合同生成失败:', error);
@@ -257,9 +279,43 @@ export class ContractService {
   /**
    * 生成输出文件名
    */
-  private generateOutputFileName(contractData: CreateContractDto): string {
+  private generateOutputFileName(
+    contractData: CreateContractDto,
+    templateId?: string,
+  ): string {
     const startDate = this.formatDate(contractData.startDate);
     const timestamp = new Date().getTime();
+
+    // 如果提供了templateId，尝试从中提取文件名模式
+    if (templateId) {
+      // 替换模板名称中的变量
+      let fileName = templateId;
+
+      // 替换常见的变量
+      fileName = fileName.replace(/\$\{name\}/g, contractData.name || '');
+      fileName = fileName.replace(/\$\{startDate\}/g, startDate);
+      fileName = fileName.replace(
+        /\$\{department\}/g,
+        contractData.department || '',
+      );
+      fileName = fileName.replace(
+        /\$\{companyName\}/g,
+        contractData.companyName || '',
+      );
+      fileName = fileName.replace(/\$\{post\}/g, contractData.post || '');
+
+      // 如果文件名不以.docx结尾，添加时间戳避免重复
+      if (!fileName.endsWith('.docx')) {
+        fileName += '.docx';
+      }
+
+      // 在扩展名前添加时间戳
+      fileName = fileName.replace('.docx', `_${timestamp}.docx`);
+
+      return fileName;
+    }
+
+    // 默认文件名格式
     return `${contractData.name}_${startDate}_${timestamp}.docx`;
   }
 
@@ -304,6 +360,13 @@ export class ContractService {
     } catch (_error) {
       return '';
     }
+  }
+
+  /**
+   * 获取生成文件目录路径
+   */
+  getGeneratedDir(): string {
+    return this.generatedDir;
   }
 
   /**
@@ -363,67 +426,5 @@ export class ContractService {
     }
 
     return result;
-  }
-
-  /**
-   * 获取模板列表
-   */
-  async getTemplates(tenantId: string): Promise<
-    Array<{
-      id: string;
-      name: string;
-      size: number;
-      uploadTime: Date;
-      tenantId: string;
-    }>
-  > {
-    try {
-      const files = await fs.readdir(this.templatesDir);
-      const templates: Array<{
-        id: string;
-        name: string;
-        size: number;
-        uploadTime: Date;
-        tenantId: string;
-      }> = [];
-
-      for (const file of files) {
-        const filePath = path.join(this.templatesDir, file);
-        const stats = await fs.stat(filePath);
-
-        templates.push({
-          id: file,
-          name: file,
-          size: stats.size,
-          uploadTime: stats.mtime,
-          tenantId,
-        });
-      }
-
-      return templates;
-    } catch (error: any) {
-      this.logger.error('获取模板列表失败:', error);
-      return [];
-    }
-  }
-
-  /**
-   * 删除模板文件
-   */
-  async deleteTemplate(templateId: string, tenantId: string): Promise<boolean> {
-    try {
-      const templatePath = path.join(this.templatesDir, templateId);
-
-      if (await fs.pathExists(templatePath)) {
-        await fs.remove(templatePath);
-        this.logger.log(`模板删除成功: ${templateId}, 租户: ${tenantId}`);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      this.logger.error('模板删除失败:', error);
-      return false;
-    }
   }
 }

@@ -6,7 +6,6 @@ import {
   Controller,
   Post,
   Get,
-  Delete,
   Body,
   Param,
   UseInterceptors,
@@ -17,6 +16,7 @@ import {
   HttpException,
   UseGuards,
   SetMetadata,
+  Logger,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -29,11 +29,14 @@ import { SimpleAuthGuard } from '../auth/guards/simple-auth.guard';
 import { TenantInterceptor } from '../../common/interceptors/tenant.interceptor';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as archiver from 'archiver';
 
 @Controller('contracts')
 @UseGuards(SimpleAuthGuard)
 @UseInterceptors(TenantInterceptor)
 export class ContractController {
+  private readonly logger = new Logger(ContractController.name);
+
   constructor(private readonly contractService: ContractService) {}
 
   /**
@@ -83,6 +86,7 @@ export class ContractController {
    * 生成合同文档
    */
   @Post('generate')
+  @SetMetadata('skipAuth', true)
   async generateContract(@Body() generateDto: GenerateContractDto) {
     try {
       const result = await this.contractService.generateContract(generateDto);
@@ -93,59 +97,6 @@ export class ContractController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-
-  /**
-   * 测试接口是否可访问
-   */
-  @Get('test')
-  async testEndpoint() {
-    return {
-      success: true,
-      message: 'Contract API is working',
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  /**
-   * 获取合同生成接口信息 (GET)
-   */
-  @Get('generate-with-template')
-  async getGenerateWithTemplateInfo() {
-    return {
-      success: true,
-      message: '合同生成接口信息',
-      method: 'POST',
-      endpoint: '/api/v1/contracts/generate-with-template',
-      contentType: 'multipart/form-data',
-      parameters: {
-        templateFile: 'File - .docx格式的模板文件',
-        tenantId: 'String - 租户ID (可选，默认为2)',
-        contractData: 'String - JSON格式的合同数据',
-      },
-      example: {
-        contractData: JSON.stringify(
-          {
-            name: '张三',
-            companyName: '医视界科技有限公司',
-            department: '技术部',
-            post: '软件工程师',
-            workingHour: '8小时',
-            cityName: '北京',
-            location: '北京市朝阳区',
-            startDate: '2025-01-01',
-            actualEndDate: '2028-01-01',
-            probationPay: 8000,
-            probationMeritPay: 2000,
-            salary: 12000,
-            meritPay: 3000,
-          },
-          null,
-          2,
-        ),
-      },
-      timestamp: new Date().toISOString(),
-    };
   }
 
   /**
@@ -188,56 +139,6 @@ export class ContractController {
   }
 
   /**
-   * 获取模板列表
-   */
-  @Get('templates')
-  async getTemplates(@Query('tenantId') tenantId: string) {
-    try {
-      const templates = await this.contractService.getTemplates(tenantId);
-      return {
-        success: true,
-        templates,
-        count: templates.length,
-      };
-    } catch (error) {
-      throw new HttpException(
-        `获取模板列表失败: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  /**
-   * 删除模板文件
-   */
-  @Delete('templates/:templateId')
-  async deleteTemplate(
-    @Param('templateId') templateId: string,
-    @Query('tenantId') tenantId: string,
-  ) {
-    try {
-      const result = await this.contractService.deleteTemplate(
-        templateId,
-        tenantId,
-      );
-
-      if (result) {
-        return {
-          success: true,
-          message: '模板删除成功',
-        };
-      } else {
-        throw new HttpException('模板文件不存在', HttpStatus.NOT_FOUND);
-      }
-    } catch (error) {
-      throw new HttpException(
-        `模板删除失败: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  /**
    * 下载生成的合同文件
    * 注意：此接口不需要身份验证，因为文件名包含了足够的安全性
    */
@@ -248,24 +149,58 @@ export class ContractController {
     @Res() res: Response,
   ) {
     try {
-      const filePath = path.join('./uploads/generated', filename);
+      this.logger.log(`下载请求: ${filename}`);
+
+      // 解码文件名（处理URL编码）
+      const decodedFilename = decodeURIComponent(filename);
+      this.logger.log(`解码后文件名: ${decodedFilename}`);
+
+      // 安全检查：防止路径遍历攻击
+      if (
+        decodedFilename.includes('..') ||
+        decodedFilename.includes('/') ||
+        decodedFilename.includes('\\')
+      ) {
+        throw new HttpException('无效的文件名', HttpStatus.BAD_REQUEST);
+      }
+
+      const filePath = path.join('./uploads/generated', decodedFilename);
+      this.logger.log(`文件路径: ${filePath}`);
 
       if (!(await fs.pathExists(filePath))) {
+        this.logger.warn(`文件不存在: ${filePath}`);
         throw new HttpException('文件不存在', HttpStatus.NOT_FOUND);
       }
 
       const stats = await fs.stat(filePath);
+      this.logger.log(`文件大小: ${stats.size} bytes`);
 
       res.set({
         'Content-Type':
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(decodedFilename)}"`,
         'Content-Length': stats.size,
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
       });
 
+      this.logger.log(`开始发送文件: ${decodedFilename}`);
       const fileStream = fs.createReadStream(filePath);
+
+      fileStream.on('error', (error) => {
+        this.logger.error('文件流错误:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: '文件读取失败' });
+        }
+      });
+
+      fileStream.on('end', () => {
+        this.logger.log(`文件发送完成: ${decodedFilename}`);
+      });
+
       fileStream.pipe(res);
     } catch (error) {
+      this.logger.error('文件下载失败:', error);
       throw new HttpException(
         `文件下载失败: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -277,6 +212,7 @@ export class ContractController {
    * 批量生成合同（从JSON数据）
    */
   @Post('generate-batch')
+  @SetMetadata('skipAuth', true)
   async generateBatchContracts(
     @Body()
     data: {
@@ -300,6 +236,7 @@ export class ContractController {
         downloadUrl?: string;
         error?: string;
       }> = [];
+
       for (const contractData of contracts) {
         try {
           const result = await this.contractService.generateContract({
@@ -319,6 +256,7 @@ export class ContractController {
 
       const successCount = results.filter((r) => r.success).length;
       const failCount = results.length - successCount;
+      const successResults = results.filter((r) => r.success);
 
       return {
         success: true,
@@ -329,12 +267,116 @@ export class ContractController {
           success: successCount,
           failed: failCount,
         },
+        // 添加批量下载信息
+        batchDownload: {
+          available: successCount > 0,
+          fileNames: successResults.map((r) => path.basename(r.filePath || '')),
+          batchDownloadUrl:
+            successCount > 0 ? '/api/v1/contracts/download-batch' : null,
+        },
       };
     } catch (error: any) {
       throw new HttpException(
         `批量生成失败: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  /**
+   * 批量下载合同文件（打包为ZIP）
+   */
+  @Post('download-batch')
+  @SetMetadata('skipAuth', true)
+  async downloadBatchContracts(
+    @Body() data: { fileNames: string[] },
+    @Res() res: Response,
+  ) {
+    try {
+      const { fileNames } = data;
+      this.logger.log(
+        `收到批量下载请求，文件列表: ${JSON.stringify(fileNames)}`,
+      );
+
+      if (!fileNames || fileNames.length === 0) {
+        throw new HttpException('请提供文件名列表', HttpStatus.BAD_REQUEST);
+      }
+
+      // 创建 ZIP 压缩包
+      const archive = archiver('zip', {
+        zlib: { level: 9 }, // 压缩级别
+      });
+
+      // 设置响应头
+      const zipFileName = `contracts_batch_${new Date().getTime()}.zip`;
+      res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${zipFileName}"`,
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      });
+
+      // 错误处理
+      archive.on('error', (err) => {
+        this.logger.error('Archive error:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'ZIP创建失败' });
+        }
+      });
+
+      archive.on('warning', (err) => {
+        this.logger.warn('Archive warning:', err);
+      });
+
+      // 将压缩流管道到响应
+      archive.pipe(res);
+
+      let addedFilesCount = 0;
+      const generatedDir = this.contractService.getGeneratedDir();
+      this.logger.log(`查找文件目录: ${generatedDir}`);
+
+      // 添加文件到压缩包
+      for (const fileName of fileNames) {
+        // 清理文件名，确保只有文件名部分
+        const cleanFileName = path.basename(fileName);
+        const filePath = path.join(generatedDir, cleanFileName);
+
+        this.logger.log(`检查文件: ${filePath}`);
+
+        if (await fs.pathExists(filePath)) {
+          const stats = await fs.stat(filePath);
+          this.logger.log(
+            `添加文件到ZIP: ${cleanFileName}, 大小: ${stats.size} bytes`,
+          );
+
+          archive.file(filePath, { name: cleanFileName });
+          addedFilesCount++;
+        } else {
+          this.logger.warn(`文件不存在，跳过: ${filePath}`);
+        }
+      }
+
+      if (addedFilesCount === 0) {
+        throw new HttpException(
+          '没有找到任何可下载的文件',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      // 完成压缩
+      await archive.finalize();
+
+      this.logger.log(
+        `批量下载完成，成功添加 ${addedFilesCount}/${fileNames.length} 个文件到ZIP`,
+      );
+    } catch (error) {
+      this.logger.error('批量下载失败:', error);
+      if (!res.headersSent) {
+        throw new HttpException(
+          `批量下载失败: ${error.message}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
   }
 

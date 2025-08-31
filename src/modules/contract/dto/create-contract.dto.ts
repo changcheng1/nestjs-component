@@ -49,5 +49,6 @@ export class GenerateContractDto {
   @IsString()
   tenantId: string; // 租户ID
 
+  @IsOptional()
   contractData: CreateContractDto; // 合同数据
 }
