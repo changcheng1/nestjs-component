@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-23 17:17:59
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-01 15:16:26
+ * @LastEditTime: 2025-09-06 13:38:00
  * @FilePath: /mvw_project/Users/changcheng/Desktop/nestjs/src/user/user.controller.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -51,9 +51,9 @@ interface RequestWithUser extends Request {
 @ApiTags('用户管理')
 @ApiBearerAuth()
 @Controller('user')
-@UseGuards(JwtAuthGuard)
-@UseInterceptors(TenantInterceptor) // 应用租户拦截器
+@UseInterceptors(TenantInterceptor) // 应用租户拦截器，在req中获取tenantId，然后添加到body中
 @UseFilters(new TypeOrmExceptionFilter()) // Changed to use class reference instead of instance
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
   /**

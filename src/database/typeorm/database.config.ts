@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-04-25 11:20:42
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-19 16:08:13
+ * @LastEditTime: 2025-09-06 11:29:42
  * @FilePath: /myself-space/nestjs/src/database/typeorm/database.config.ts
  * @Description: 数据库配置文件 - 整合版
  */
@@ -89,9 +89,11 @@ export { databaseConfig as db, http };
 
 // 创建租户数据库配置
 export const createTenantDataSource = (tenantId: string): DataSourceOptions => {
-  const tenantConfig =
-    tenantId === '1' ? databaseConfig.tenant1 : databaseConfig.tenant2;
-
+  const dataSourceMap: Record<string, typeof databaseConfig.tenant1> = {
+    '1': databaseConfig.tenant1,
+    '2': databaseConfig.tenant2,
+  };
+  const tenantConfig = dataSourceMap[tenantId] || databaseConfig.tenant1;
   return {
     type: 'mysql',
     host: tenantConfig.host,

@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-08-20 18:52:00
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-20 18:52:00
+ * @LastEditTime: 2025-09-06 10:44:13
  * @FilePath: /myself-space/nestjs/src/common/services/tenant-context.service.ts
  * @Description: 租户上下文服务 - 管理当前请求的租户信息
  */
@@ -10,7 +10,7 @@ import { Injectable, Scope, Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable({ scope: Scope.REQUEST }) // 设置作用域为请求作用域，在请求作用域下，每次请求都会创建新的实例
 export class TenantContextService {
   constructor(@Inject(REQUEST) private readonly request: Request) {}
 

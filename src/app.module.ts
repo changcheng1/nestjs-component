@@ -2,7 +2,7 @@
  * @Author: changcheng 364000100@#qq.com
  * @Date: 2025-08-05 16:42:43
  * @LastEditors: changcheng 364000100@#qq.com
- * @LastEditTime: 2025-08-19 16:21:18
+ * @LastEditTime: 2025-09-06 10:27:39
  * @FilePath: /myself-space/nestjs/src/app.module.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -34,10 +34,10 @@ import { AppController } from './app.controller';
     ...DatabaseConfigBuilder.create().map((config) =>
       TypeOrmModule.forRootAsync(config),
     ),
+    AuthModule,
     UserModule,
     InstitutionModule,
     LogsModule,
-    AuthModule,
     ProfileModule,
     RoleModule,
     MenusModule,
@@ -53,8 +53,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // 应用日志中间件
     consumer.apply(LoggerMiddleware).forRoutes(UserController);
-
-    // 应用租户中间件到所有路由
+    // 应用租户中间件到所有路由，获取请求头中的租户ID
     consumer.apply(TenantMiddleware).forRoutes('*');
   }
 }
